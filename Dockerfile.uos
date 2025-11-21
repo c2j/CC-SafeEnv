@@ -147,8 +147,11 @@ RUN /usr/local/python3.12/bin/python3 -m ensurepip && \
     /usr/local/python3.12/bin/pip3 install --no-cache-dir uv 
 
 # 1. 创建用户并指定主目录、shell
-RUN groupadd -g 1000 app && \
-    useradd -u 1000 -g app -m -d /home/app -s /bin/bash app
+ARG USER_UID=1000
+ARG USER_GID=1000
+
+RUN groupadd -g ${USER_UID} app && \
+    useradd -u ${USER_GID} -g app -m -d /home/app -s /bin/bash app
 
 # 2. 如果程序需要写数据目录，提前赋权
 RUN mkdir /data && chown app:app /data
