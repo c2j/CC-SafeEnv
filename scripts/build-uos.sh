@@ -11,7 +11,7 @@ fi
 
 
 
-docker build -t ccsafeenv-linux-builder -f Dockerfile.uos .
+docker build -t ccsafeenv-linux-builder -f Dockerfile.uos --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) .
 
 # 运行如下命令启动容器
 # mkdir -p .root_claude && docker run -it -v ~/.claude/settings.json:/home/app/.claude/settings.json -v ~/.claude.json:/home/app/.claude.json -v $(pwd):/app1 -v $(pwd)/.root_claude:/home/app/.claude  ccsafeenv-linux-builder /bin/bash
