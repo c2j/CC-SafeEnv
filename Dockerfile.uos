@@ -19,7 +19,7 @@ RUN yum -y update && \
     git && \
     yum clean all && \
     rm -rf /var/cache/yum
-  
+
 # Install development tools and build OpenSSL - combine to reduce layers
 RUN yum install -y \
     openssl-devel \
@@ -49,6 +49,7 @@ RUN wget https://www.python.org/ftp/python/3.12.12/Python-3.12.12.tgz && \
     make install && \
     cd .. && \
     rm -rf Python-3.12*
+
 
 # Build and install OpenSSL, clean up in same layer
 RUN wget https://www.openssl.org/source/openssl-3.0.9.tar.gz && \
@@ -144,7 +145,57 @@ RUN pip3 install --no-cache-dir meson==0.60.0 ninja && \
 RUN ldd --version
 
 RUN /usr/local/python3.12/bin/python3 -m ensurepip && \
-    /usr/local/python3.12/bin/pip3 install --no-cache-dir uv 
+    /usr/local/python3.12/bin/pip3 install --no-cache-dir uv
+
+RUN wget https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz && \
+    tar xzf Python-3.10.12.tgz && \
+    cd Python-3.10.12 && \
+    ./configure --prefix=/usr/local/python3.10 && \
+    make -j$(nproc) && \
+    make install && \
+    cd .. && \
+    rm -rf Python-3.10*
+
+# 增加OpenJDK
+RUN yum install -y java-1.8.0-openjdk-devel
+RUN yum install -y libsoup-devel
+
+RUN yum update && yum install -y gcc gcc-c++ cmake python3 flex bison gperf ruby \
+  libxml2-devel libsoup-devel sqlite-devel libxslt-devel \
+  libtasn1-devel libgcrypt-devel libsecret-devel \
+  libwebp-devel libjpeg-devel libpng-devel
+RUN yum install -y libwpe-devel wpebackend-fdo-devel
+RUN wget https://webkitgtk.org/releases/webkitgtk-2.34.1.tar.xz
+RUN yum remove -y \
+  gstreamer1 gstreamer1-plugins-base \
+  gstreamer1-plugins-good gstreamer1-plugins-bad-free
+RUN    tar xf webkitgtk-2.34.1.tar.xz && cd webkitgtk-2.34.1 && \
+    mkdir build && cd build && \
+    cmake .. \
+        -DCMAKE_INSTALL_PREFIX=/opt/webkit-2.34 \
+        -DPORT=GTK \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DENABLE_MINIBROWSER=OFF \
+        -DENABLE_DOCUMENTATION=OFF \
+        -DENABLE_WEBDRIVER=OFF \
+        -DUSE_WOFF2=OFF \
+        -DUSE_SOUP2=ON \
+        -DENABLE_GAMEPAD=OFF \
+        -DENABLE_INTROSPECTION=OFF \
+        -DENABLE_SPELLCHECK=OFF \
+        -DENABLE_X11_TARGET=OFF \
+        -DUSE_LIBNOTIFY=OFF \
+        -DUSE_LIBHYPHEN=OFF \
+        -DUSE_OPENJPEG=OFF \
+        -DUSE_SYSTEMD=OFF \
+        -DUSE_LCMS=OFF \
+        -DENABLE_BUBBLEWRAP_SANDBOX=OFF \
+        -DENABLE_WEB_AUDIO=OFF  && \
+    make -j$(nproc)  && \
+    make install
+
+ENV PKG_CONFIG_PATH /opt/webkit-2.34/lib/pkgconfig:$PKG_CONFIG_PATH
+ENV LD_LIBRARY_PATH /opt/webkit-2.34/lib:$LD_LIBRARY_PATH
 
 # 1. 创建用户并指定主目录、shell
 ARG USER_UID=1000
@@ -196,14 +247,26 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | b
     chmod 777 $HOME && \
     chmod -R 755 $HOME && \
     mkdir $HOME/.claude && \
-    chmod -R 777 $HOME/.claude 
+    chmod -R 777 $HOME/.claude
 
 ENV PATH="$HOME/.local/bin:${PATH}"
-    
+
 RUN /usr/local/python3.12/bin/uv tool install specify-cli --from git+https://github.com/github/spec-kit.git && \
     specify --help
 
+# 安装Qwen Code
+RUN source "$HOME/.nvm/nvm.sh" && \
+    npm install -g @qwen-code/qwen-code@latest && \
+    qwen --version && \
+    # 清理所有缓存和不必要的文件
+    npm cache clean --force && \
+    rm -rf $HOME/.npm/_cacache && \
+    rm -rf $HOME/.npm/_logs && \
+    rm -rf $HOME/.nvm/.cache && \
+    rm -rf $HOME/.nvm/versions/node/v*/include && \
+    rm -rf $HOME/.nvm/versions/node/v*/share && \
+    mkdir $HOME/.qwen && \
+    chmod -R 777 $HOME/.qwen
+
 WORKDIR /app1
 RUN ldd --version
-
-
