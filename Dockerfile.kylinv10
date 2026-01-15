@@ -29,6 +29,8 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --pr
     && rm -rf $HOME/.cargo/registry/cache \
     && rm -rf $HOME/.cargo/git/db
 
+ENV PATH="$HOME/.cargo/bin:${PATH}"
+
 RUN rustup component add rust-src rustc-dev aarch64-unknown-linux-musl
 
 ENV CFLAGS="-O1 -ffunction-sections -fdata-sections"
@@ -37,8 +39,6 @@ ENV OPT_LEVEL=1
 ENV CARGO_PROFILE_DEV_OPT_LEVEL=1
 ENV CARGO_PROFILE_RELEASE_OPT_LEVEL=1
 ENV TZ=Asia/Shanghai
-
-ENV PATH="$HOME/.cargo/bin:${PATH}"
 
 # 安装node.js  - 优化安装并清理所有缓存
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash && \
