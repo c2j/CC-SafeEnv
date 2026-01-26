@@ -48,8 +48,7 @@ RUN apt-get update && \
 
 
 # 按转OpenCode
-# RUN . "$HOME/.nvm/nvm.sh" && \
-#    npm install -g opencode-ai
+RUN npm install -g opencode-ai
 
 # RUN echo '. "$HOME/.nvm/nvm.sh"' >> ~/.bashrc
 
