@@ -31,14 +31,6 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --pr
 
 ENV PATH="$HOME/.cargo/bin:${PATH}"
 
-# 安装node.js  - 优化安装并清理所有缓存
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash && \
-    . "$HOME/.nvm/nvm.sh" && \
-    # 安装 Node.js 22
-    nvm install 22 && \
-    node -v && \
-    npm -v
-
 RUN rustup component add rust-src rustc-dev
 RUN rustup target add aarch64-unknown-linux-musl
 
@@ -48,3 +40,20 @@ ENV OPT_LEVEL=1
 ENV CARGO_PROFILE_DEV_OPT_LEVEL=1
 ENV CARGO_PROFILE_RELEASE_OPT_LEVEL=1
 ENV TZ=Asia/Shanghai
+
+RUN apt-get update && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x |bash - && \
+    apt install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+
+# 按转OpenCode
+RUN npm install -g opencode-ai
+
+# RUN echo '. "$HOME/.nvm/nvm.sh"' >> ~/.bashrc
+
+# 设置入口命令以加载 nvm 环境
+# ENTRYPOINT ["bash", "-c", "source /root/.nvm/nvm.sh && exec \"$@\"", "--"]
+
+# 默认命令
+CMD ["/bin/bash"]
