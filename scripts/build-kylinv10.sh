@@ -13,7 +13,8 @@ fi
 # docker pull --platform linux/arm64 ubuntu:20.04
 # DOCKER_BUILDKIT=1 BUILDX_NO_DEFAULT_ATTESTATIONS=1
 # --provenance=false
-DOCKER_BUILDKIT=0 BUILDX_NO_DEFAULT_ATTESTATIONS=1 docker  build --platform linux/arm64 -t ccsafeenv-linux-builder:kylinv10 -f Dockerfile.kylinv10 --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g)  .
+# DOCKER_BUILDKIT=0 BUILDX_NO_DEFAULT_ATTESTATIONS=1 
+docker  build --rm=false --platform linux/arm64 -t ccsafeenv-linux-builder:kylinv10 -f Dockerfile.kylinv10   .
 
 # 运行如下命令启动容器
 # docker run -it --platform linux/arm64  ccsafeenv-linux-builder:kylinv10 /bin/bash
