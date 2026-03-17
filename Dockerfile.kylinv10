@@ -1,22 +1,32 @@
-FROM ubuntu:20.04
+#FROM ubuntu:20.04
+FROM macrosan/kylin:v10-sp3-2403
 
-RUN apt-get update && apt-get install -y curl
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Asia/Shanghai
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends tzdata
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc libglib2.0-dev libssl-dev \
-        libgtk-3-dev \
-        libwebkit2gtk-4.0-dev \
-        libayatana-appindicator3-dev \
-        librsvg2-dev \
-        pkg-config build-essential
-RUN apt-get update && \
-    apt-get install -y musl-dev musl-tools
 
-RUN apt-get update && \
-    apt-get install -y wget imagemagick file
+RUN yum update -y && \
+    yum install -y curl
+
+RUN yum install -y \
+    tzdata \
+    gcc \
+    glib2-devel \
+    openssl-devel \
+    gtk3-devel \
+    webkit2gtk3-devel \
+    libappindicator-gtk3-devel \
+    librsvg2-devel \
+    pkgconfig \
+    make
+
+RUN yum install -y \
+    musl-gcc \
+    musl-tools || true
+
+RUN yum install -y \
+    wget \
+    ImageMagick \
+    file
 
 WORKDIR /root
 ENV HOME=/root
@@ -41,19 +51,31 @@ ENV CARGO_PROFILE_DEV_OPT_LEVEL=1
 ENV CARGO_PROFILE_RELEASE_OPT_LEVEL=1
 ENV TZ=Asia/Shanghai
 
-RUN apt-get update && \
-    curl -fsSL https://deb.nodesource.com/setup_20.x |bash - && \
-    apt install -y nodejs && \
-    rm -rf /var/lib/apt/lists/*
-
+# Install Node.js 20 for RHEL/CentOS
+RUN curl -fsSL https://rpm.nodesource.com/setup_20.x | bash - && \
+    yum install -y nodejs
 
 # 按转OpenCode
 RUN npm install -g opencode-ai
 
-# RUN echo '. "$HOME/.nvm/nvm.sh"' >> ~/.bashrc
+# Install cmake from binary
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.28.1/cmake-3.28.1-linux-aarch64.sh && \
+    chmod +x cmake-3.28.1-linux-aarch64.sh && \
+    ./cmake-3.28.1-linux-aarch64.sh --prefix=/usr/local --skip-license && \
+    rm -f cmake-3.28.1-linux-aarch64.sh
 
-# 设置入口命令以加载 nvm 环境
-# ENTRYPOINT ["bash", "-c", "source /root/.nvm/nvm.sh && exec \"$@\"", "--"]
+RUN yum install -y \
+    make \
+    alsa-lib-devel \
+    fontconfig-devel \
+    webkit2gtk3-devel \
+    openssl-devel \
+    gtk3-devel \
+    libX11-xcb-devel \
+    libxkbcommon-x11-devel
+
+# 清理缓存以减小镜像大小
+RUN yum clean all && rm -rf /var/cache/yum/*
 
 # 默认命令
 CMD ["/bin/bash"]
